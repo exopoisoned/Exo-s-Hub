@@ -18,7 +18,7 @@ main.Parent = gui
 main.Size = UDim2.fromOffset(520, 360)
 main.Position = UDim2.fromScale(0.5, 0.5)
 main.AnchorPoint = Vector2.new(0.5, 0.5)
-main.BackgroundColor3 = Color3.fromRGB(180, 240, 220) -- light green tint
+main.BackgroundColor3 = Color3.fromRGB(180, 240, 220)
 main.BackgroundTransparency = 0.25
 main.BorderSizePixel = 0
 main.Active = true
@@ -34,15 +34,15 @@ stroke.Transparency = 0.2
 local top = Instance.new("Frame")
 top.Parent = main
 top.Size = UDim2.new(1,0,0,48)
-top.BackgroundColor3 = Color3.fromRGB(140, 220, 160) -- green gradient base
+top.BackgroundColor3 = Color3.fromRGB(140, 220, 160)
 top.BackgroundTransparency = 0.2
 top.BorderSizePixel = 0
 Instance.new("UICorner", top).CornerRadius = UDim.new(0,24)
 
 local topGrad = Instance.new("UIGradient", top)
 topGrad.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 245, 200)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(140, 220, 160))
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(180,245,200)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(140,220,160))
 }
 
 -- title
@@ -334,4 +334,63 @@ hubButton("Exo Abillity", function()
 			end
 		end
 	end)
+end)
+
+-- Bubbles effect
+local BubbleFolder = Instance.new("Folder")
+BubbleFolder.Name = "Bubbles"
+BubbleFolder.Parent = gui
+
+-- wait for title to render so AbsolutePosition is valid
+task.wait(0.2)
+
+local function createBubble()
+	local size = math.random(12,24)
+	local bubble = Instance.new("Frame")
+	bubble.Size = UDim2.fromOffset(size, size)
+	bubble.AnchorPoint = Vector2.new(0.5, 0.5)
+	
+	-- spawn along the title
+	local xPos = math.random(0, title.AbsoluteSize.X)
+	local yPos = title.AbsolutePosition.Y + title.AbsoluteSize.Y / 2
+	bubble.Position = UDim2.new(0, title.AbsolutePosition.X + xPos, 0, yPos)
+	
+	bubble.BackgroundColor3 = Color3.fromRGB(200,255,255)
+	bubble.BackgroundTransparency = 0.6
+	bubble.BorderSizePixel = 0
+	Instance.new("UICorner", bubble).CornerRadius = UDim.new(0.5,0)
+	bubble.Parent = BubbleFolder
+	
+	-- Outline frame
+	local outline = Instance.new("Frame")
+	outline.Size = UDim2.fromScale(1,1)
+	outline.Position = UDim2.new(0,0,0,0)
+	outline.BackgroundTransparency = 0.9
+	outline.BorderSizePixel = 2
+	outline.BorderColor3 = Color3.fromRGB(180,255,255)
+	outline.ZIndex = 1
+	outline.Parent = bubble
+	Instance.new("UICorner", outline).CornerRadius = UDim.new(0.5,0)
+	
+	-- Tween bubble upwards
+	local floatDistance = math.random(150,250)
+	local floatTime = math.random(4,7)
+	local startY = bubble.Position.Y.Offset
+	local targetY = startY - floatDistance
+	local tween = TweenService:Create(bubble, TweenInfo.new(floatTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Position = UDim2.new(bubble.Position.X.Scale, bubble.Position.X.Offset, 0, targetY),
+		BackgroundTransparency = 1,
+	})
+	tween:Play()
+	tween.Completed:Connect(function()
+		bubble:Destroy()
+	end)
+end
+
+-- repeatedly spawn bubbles
+spawn(function()
+	while gui.Parent do
+		createBubble()
+		task.wait(math.random(3,6)/10)
+	end
 end)
