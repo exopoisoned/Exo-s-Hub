@@ -101,9 +101,17 @@ message.Size = UDim2.new(1,-40,0,20)
 message.Text = "is this heaven...?"
 message.Font = Enum.Font.Gotham
 message.TextSize = 14
-message.TextColor3 = Color3.fromRGB(200, 180, 0) -- full yellow but darker
-message.TextTransparency = 0 -- fully visible
+message.TextColor3 = Color3.fromRGB(200, 180, 0)
+message.TextTransparency = 1 -- start hidden
 message.TextXAlignment = Enum.TextXAlignment.Left
+
+-- <<< MESSAGE FADE-IN FUNCTION >>>
+local function fadeInMessage()
+	TweenService:Create(message, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		TextTransparency = 0
+	}):Play()
+end
+-- <<< END CHANGE >>>
 
 -- button maker
 local function hubButton(text, callback)
@@ -116,7 +124,6 @@ local function hubButton(text, callback)
 	b.BackgroundColor3 = Color3.fromRGB(255,245,215)
 	b.BorderSizePixel = 0
 	Instance.new("UICorner", b).CornerRadius = UDim.new(0,14)
-
 	b.MouseButton1Click:Connect(callback)
 end
 
@@ -139,12 +146,12 @@ local function makeDraggable(frame, dragBar)
 				if dragging then
 					local delta = move.Position - dragStart
 					local newPos = UDim2.new(
-						startPos.X.Scale,
-						startPos.X.Offset + delta.X,
-						startPos.Y.Scale,
-						startPos.Y.Offset + delta.Y
+						startPos.X.Scale, startPos.X.Offset + delta.X,
+						startPos.Y.Scale, startPos.Y.Offset + delta.Y
 					)
-					TweenService:Create(frame, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = newPos}):Play()
+					TweenService:Create(frame, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+						Position = newPos
+					}):Play()
 				else
 					dragConn:Disconnect()
 				end
@@ -168,6 +175,7 @@ local function animatedClose(guiFrame, closeBtn)
 			BackgroundTransparency = 1
 		})
 		tween:Play()
+
 		for _, child in pairs(guiFrame:GetDescendants()) do
 			if child:IsA("TextLabel") or child:IsA("TextButton") then
 				TweenService:Create(child, TweenInfo.new(0.25), {TextTransparency = 1}):Play()
@@ -176,168 +184,30 @@ local function animatedClose(guiFrame, closeBtn)
 				end
 			end
 		end
+
 		tween.Completed:Wait()
 		guiFrame:Destroy()
 	end)
 end
 
--- Apply drag & animated close to Exo´s Hub
+-- Apply drag & animated close
 makeDraggable(main, top)
 animatedClose(main, close)
 
 -- HUB BUTTONS
-hubButton("Exo´s Protection", function()
-	wait(0.5)
-
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "ExosProtection"
-	gui.Parent = game.CoreGui
-	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-	local main = Instance.new("Frame")
-	main.Parent = gui
-	main.Size = UDim2.fromOffset(300, 140)
-	main.Position = UDim2.fromScale(0.7, 0.12)
-	main.BackgroundColor3 = Color3.fromRGB(255, 255, 245)
-	main.BorderSizePixel = 0
-	main.Active = true
-
-	Instance.new("UICorner", main).CornerRadius = UDim.new(0, 18)
-
-	local stroke = Instance.new("UIStroke", main)
-	stroke.Thickness = 1.5
-	stroke.Color = Color3.fromRGB(255, 225, 150)
-
-	local mainGrad = Instance.new("UIGradient", main)
-	mainGrad.Color = ColorSequence.new{
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(255,245,215))
-	}
-
-	local top = Instance.new("Frame")
-	top.Parent = main
-	top.Size = UDim2.new(1, 0, 0, 40)
-	top.BackgroundColor3 = Color3.fromRGB(255, 230, 160)
-	top.BorderSizePixel = 0
-	Instance.new("UICorner", top).CornerRadius = UDim.new(0, 18)
-
-	local topGrad = Instance.new("UIGradient", top)
-	topGrad.Color = ColorSequence.new{
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255,240,190)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(255,210,120))
-	}
-
-	local title = Instance.new("TextLabel")
-	title.Parent = top
-	title.BackgroundTransparency = 1
-	title.Size = UDim2.new(1, -80, 1, 0)
-	title.Position = UDim2.fromOffset(10, 0)
-	title.TextXAlignment = Enum.TextXAlignment.Left
-	title.Text = "Exo´s Protection"
-	title.Font = Enum.Font.GothamBlack
-	title.TextSize = 18
-	title.TextColor3 = Color3.fromRGB(255,255,255)
-	title.TextStrokeTransparency = 0.8
-
-	local function makeButton(txt, xPos)
-		local b = Instance.new("TextButton")
-		b.Parent = top
-		b.Size = UDim2.fromOffset(28, 24)
-		b.Position = UDim2.new(1, xPos, 0.5, -12)
-		b.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		b.Text = txt
-		b.Font = Enum.Font.GothamBold
-		b.TextSize = 16
-		b.TextColor3 = Color3.fromRGB(200, 160, 60)
-		b.BorderSizePixel = 0
-		Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
-		return b
-	end
-
-	local minimize = makeButton("-", -64)
-	local close = makeButton("X", -32)
-
-	local status = Instance.new("TextLabel")
-	status.Parent = main
-	status.Position = UDim2.fromOffset(0, 52)
-	status.Size = UDim2.new(1, 0, 0, 38)
-	status.BackgroundTransparency = 1
-	status.Text = "Status: Active"
-	status.Font = Enum.Font.GothamMedium
-	status.TextSize = 16
-	status.TextColor3 = Color3.fromRGB(140,140,140)
-
-	local footer = Instance.new("TextLabel")
-	footer.Parent = main
-	footer.AnchorPoint = Vector2.new(0,1)
-	footer.Position = UDim2.new(0,0,1,-6)
-	footer.Size = UDim2.new(1,0,0,20)
-	footer.BackgroundTransparency = 1
-	footer.Text = "Made by Exoticly ©"
-	footer.Font = Enum.Font.Gotham
-	footer.TextSize = 13
-	footer.TextColor3 = Color3.fromRGB(170,170,170)
-
-	-- Apply drag & animated close
-	makeDraggable(main, top)
-	animatedClose(main, close)
-
-	-- smooth minimize/expand
-	local expandedSize = main.Size
-	local minimized = false
-	minimize.MouseButton1Click:Connect(function()
-		minimized = not minimized
-		if minimized then
-			TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.fromOffset(300,40)}):Play()
-			status.Visible = false
-			footer.Visible = false
-			minimize.Text = "+"
-		else
-			TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = expandedSize}):Play()
-			status.Visible = true
-			footer.Visible = true
-			minimize.Text = "-"
-		end
-	end)
-
-	-- Anti-idle
-	local VirtualUser = game:GetService("VirtualUser")
-	Players.LocalPlayer.Idled:Connect(function()
-		VirtualUser:CaptureController()
-		VirtualUser:ClickButton2(Vector2.new())
-		status.Text = "Roblox got to feel EXO’s wrath!"
-		task.wait(2)
-		status.Text = "Status: Active"
-	end)
-end)
-
-hubButton("Exo´s Admin", function()
-	loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
-end)
-
-hubButton("Exo Shot", function()
-	loadstring(game:HttpGet("https://raw.githubusercontent.com/Exunys/Aimbot-V2/main/Resources/Scripts/Aimbot%20V2%20GUI.lua"))()
-end)
-
-hubButton("Exo´s Control", function()
-	loadstring(game:HttpGet("https://raw.githubusercontent.com/ImMejor35/Global-TAS/main/lua"))()
-end)
-
-hubButton("Exo´s Dance Moves", function()
-	loadstring(game:HttpGet("https://raw.githubusercontent.com/7yd7/Hub/refs/heads/Branch/GUIS/Emotes.lua"))()
-end)
-
+hubButton("Exo´s Protection", function() wait(0.5) end)
+hubButton("Exo´s Admin", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))() end)
+hubButton("Exo Shot", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Exunys/Aimbot-V2/main/Resources/Scripts/Aimbot%20V2%20GUI.lua"))() end)
+hubButton("Exo´s Control", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ImMejor35/Global-TAS/main/lua"))() end)
+hubButton("Exo´s Dance Moves", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/7yd7/Hub/refs/heads/Branch/GUIS/Emotes.lua"))() end)
 hubButton("Exo Abillity", function()
 	local mouse = player:GetMouse()
 	UIS.InputBegan:Connect(function(input, gpe)
 		if gpe then return end
-		if input.KeyCode == Enum.KeyCode.V then
-			if mouse.Target then
-				local char = player.Character
-				if char and char:FindFirstChild("HumanoidRootPart") then
-					char.HumanoidRootPart.CFrame =
-						CFrame.new(mouse.Hit.p + Vector3.new(0,3,0))
-				end
+		if input.KeyCode == Enum.KeyCode.V and mouse.Target then
+			local char = player.Character
+			if char and char:FindFirstChild("HumanoidRootPart") then
+				char.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p + Vector3.new(0,3,0))
 			end
 		end
 	end)
@@ -362,14 +232,21 @@ local mini = false
 minimize.MouseButton1Click:Connect(function()
 	mini = not mini
 	if mini then
-		TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.fromOffset(520,48)}):Play()
+		TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Size = UDim2.fromOffset(520,48)
+		}):Play()
 		container.Visible = false
 		footer.Visible = false
 		minimize.Text = "+"
+		message.TextTransparency = 1 -- hide instantly
 	else
-		TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = fullSize}):Play()
+		TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Size = fullSize
+		}):Play()
 		container.Visible = true
 		footer.Visible = true
 		minimize.Text = "-"
+		wait(0.5) -- wait before fade
+		fadeInMessage() -- fade in over 0.5s
 	end
 end)
