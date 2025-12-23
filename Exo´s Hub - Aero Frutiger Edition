@@ -94,7 +94,7 @@ local layout = Instance.new("UIGridLayout", container)
 layout.CellSize = UDim2.fromOffset(220,50)
 layout.CellPadding = UDim2.fromOffset(16,16)
 
--- SMALL THIN MESSAGE
+-- <<< SMALL THIN MESSAGE with fade-in/out >>>
 local message = Instance.new("TextLabel")
 message.Parent = main
 message.BackgroundTransparency = 1
@@ -103,9 +103,17 @@ message.Size = UDim2.new(1,-40,0,20)
 message.Text = "the promised future that was stolen from us..."
 message.Font = Enum.Font.Gotham
 message.TextSize = 14
-message.TextColor3 = Color3.fromRGB(180,255,180) -- light green
-message.TextTransparency = 0.3 -- slightly transparent
+message.TextColor3 = Color3.fromRGB(180,255,180)
+message.TextTransparency = 1 -- start hidden
 message.TextXAlignment = Enum.TextXAlignment.Left
+
+local function showMessage()
+	TweenService:Create(message, TweenInfo.new(0.5), {TextTransparency = 0.3}):Play()
+end
+
+local function hideMessage()
+	TweenService:Create(message, TweenInfo.new(0.25), {TextTransparency = 1}):Play()
+end
 
 -- button maker
 local function hubButton(text, callback)
@@ -126,38 +134,55 @@ local function hubButton(text, callback)
 	b.MouseButton1Click:Connect(callback)
 end
 
--- drag function
+-- smooth draggable function
 local function makeDraggable(frame, dragBar)
-	local dragging, dragStart, startPos
+	local dragging = false
+	local dragStart = Vector2.new()
+	local startPos = UDim2.new()
+	local dragTween
+
+	local function update(input)
+		if dragging and input.Position then
+			local delta = input.Position - dragStart
+			local targetPos = UDim2.new(
+				startPos.X.Scale,
+				startPos.X.Offset + delta.X,
+				startPos.Y.Scale,
+				startPos.Y.Offset + delta.Y
+			)
+			if dragTween then dragTween:Cancel() end
+			dragTween = TweenService:Create(frame, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = targetPos})
+			dragTween:Play()
+		end
+	end
+
 	dragBar.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			dragging = true
 			dragStart = input.Position
 			startPos = frame.Position
-		end
-	end)
-	dragBar.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement then
-			local dragConn
-			dragConn = UIS.InputChanged:Connect(function(move)
-				if dragging then
-					local delta = move.Position - dragStart
-					local newPos = UDim2.new(
-						startPos.X.Scale,
-						startPos.X.Offset + delta.X,
-						startPos.Y.Scale,
-						startPos.Y.Offset + delta.Y
-					)
-					TweenService:Create(frame, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = newPos}):Play()
-				else
-					dragConn:Disconnect()
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+					-- optional soft snap tween on release
+					TweenService:Create(frame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+						Position = frame.Position
+					}):Play()
 				end
 			end)
 		end
 	end)
-	dragBar.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			dragging = false
+
+	dragBar.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement then
+			local moveConn
+			moveConn = UIS.InputChanged:Connect(function(move)
+				if dragging and move.UserInputType == Enum.UserInputType.MouseMovement then
+					update(move)
+				elseif not dragging then
+					moveConn:Disconnect()
+				end
+			end)
 		end
 	end)
 end
@@ -197,22 +222,25 @@ minimize.MouseButton1Click:Connect(function()
 		TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.fromOffset(520,48)}):Play()
 		container.Visible = false
 		minimize.Text = "+"
+		hideMessage()
 	else
 		TweenService:Create(main, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = fullSize}):Play()
 		container.Visible = true
 		minimize.Text = "-"
+		task.delay(0.5, showMessage)
 	end
 end)
+
+-- Show message at launch
+task.delay(0.5, showMessage)
 
 -- HUB BUTTONS
 hubButton("Exo´s Protection", function()
 	wait(0.5)
-
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "ExosProtection"
 	gui.Parent = game.CoreGui
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
 	local main = Instance.new("Frame")
 	main.Parent = gui
 	main.Size = UDim2.fromOffset(300, 140)
@@ -222,12 +250,10 @@ hubButton("Exo´s Protection", function()
 	main.BorderSizePixel = 0
 	main.Active = true
 	Instance.new("UICorner", main).CornerRadius = UDim.new(0,18)
-
 	local stroke = Instance.new("UIStroke", main)
 	stroke.Thickness = 1.5
 	stroke.Color = Color3.fromRGB(100, 200, 140)
 	stroke.Transparency = 0.2
-
 	local top = Instance.new("Frame")
 	top.Parent = main
 	top.Size = UDim2.new(1,0,0,40)
@@ -235,20 +261,18 @@ hubButton("Exo´s Protection", function()
 	top.BackgroundTransparency = 0.2
 	top.BorderSizePixel = 0
 	Instance.new("UICorner", top).CornerRadius = UDim.new(0,18)
-
 	local topGrad = Instance.new("UIGradient", top)
 	topGrad.Color = ColorSequence.new{
 		ColorSequenceKeypoint.new(0, Color3.fromRGB(180,245,200)),
 		ColorSequenceKeypoint.new(1, Color3.fromRGB(140,220,160))
 	}
-
 	local title = Instance.new("TextLabel")
 	title.Parent = top
 	title.BackgroundTransparency = 1
 	title.Size = UDim2.new(1,-80,1,0)
 	title.Position = UDim2.fromOffset(10,0)
 	title.TextXAlignment = Enum.TextXAlignment.Left
-	title.Text = "Exo´s Protection - Aero Edition"
+	title.Text = "Exo´s Protection - Aero"
 	title.Font = Enum.Font.GothamBlack
 	title.TextSize = 18
 	title.TextColor3 = Color3.fromRGB(255,255,255)
@@ -272,7 +296,6 @@ hubButton("Exo´s Protection", function()
 
 	local minimize = makeButton("-", -64)
 	local close = makeButton("X", -32)
-
 	local status = Instance.new("TextLabel")
 	status.Parent = main
 	status.Position = UDim2.fromOffset(0,52)
@@ -282,7 +305,6 @@ hubButton("Exo´s Protection", function()
 	status.Font = Enum.Font.GothamMedium
 	status.TextSize = 16
 	status.TextColor3 = Color3.fromRGB(30,80,40)
-
 	local footer = Instance.new("TextLabel")
 	footer.Parent = main
 	footer.AnchorPoint = Vector2.new(0,1)
@@ -317,23 +339,19 @@ hubButton("Exo´s Protection", function()
 	end)
 end)
 
--- other buttons
+-- Other hub buttons
 hubButton("Exo´s Admin", function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
 end)
-
 hubButton("Exo Shot", function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/Exunys/Aimbot-V2/main/Resources/Scripts/Aimbot%20V2%20GUI.lua"))()
 end)
-
 hubButton("Exo´s Control", function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/ImMejor35/Global-TAS/main/lua"))()
 end)
-
 hubButton("Exo´s Dance Moves", function()
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/7yd7/Hub/refs/heads/Branch/GUIS/Emotes.lua"))()
 end)
-
 hubButton("Exo Abillity", function()
 	local mouse = player:GetMouse()
 	UIS.InputBegan:Connect(function(input, gpe)
@@ -354,27 +372,22 @@ local BubbleFolder = Instance.new("Folder")
 BubbleFolder.Name = "Bubbles"
 BubbleFolder.Parent = gui
 
--- wait for title to render so AbsolutePosition is valid
+-- spawn bubbles
 task.wait(0.2)
-
 local function createBubble()
 	local size = math.random(12,24)
 	local bubble = Instance.new("Frame")
 	bubble.Size = UDim2.fromOffset(size, size)
 	bubble.AnchorPoint = Vector2.new(0.5, 0.5)
-	
-	-- spawn along the title
 	local xPos = math.random(0, title.AbsoluteSize.X)
 	local yPos = title.AbsolutePosition.Y + title.AbsoluteSize.Y / 2
 	bubble.Position = UDim2.new(0, title.AbsolutePosition.X + xPos, 0, yPos)
-	
 	bubble.BackgroundColor3 = Color3.fromRGB(200,255,255)
 	bubble.BackgroundTransparency = 0.6
 	bubble.BorderSizePixel = 0
 	Instance.new("UICorner", bubble).CornerRadius = UDim.new(0.5,0)
 	bubble.Parent = BubbleFolder
-	
-	-- Outline frame
+
 	local outline = Instance.new("Frame")
 	outline.Size = UDim2.fromScale(1,1)
 	outline.Position = UDim2.new(0,0,0,0)
@@ -384,26 +397,24 @@ local function createBubble()
 	outline.ZIndex = 1
 	outline.Parent = bubble
 	Instance.new("UICorner", outline).CornerRadius = UDim.new(0.5,0)
-	
-	-- Tween bubble upwards
+
 	local floatDistance = math.random(150,250)
 	local floatTime = math.random(4,7)
 	local startY = bubble.Position.Y.Offset
 	local targetY = startY - floatDistance
+
 	local tween = TweenService:Create(bubble, TweenInfo.new(floatTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 		Position = UDim2.new(bubble.Position.X.Scale, bubble.Position.X.Offset, 0, targetY),
 		BackgroundTransparency = 1,
 	})
 	tween:Play()
-	tween.Completed:Connect(function()
-		bubble:Destroy()
-	end)
+	tween.Completed:Connect(function() bubble:Destroy() end)
 end
 
--- repeatedly spawn bubbles
 spawn(function()
 	while gui.Parent do
 		createBubble()
 		task.wait(math.random(3,6)/10)
 	end
 end)
+
