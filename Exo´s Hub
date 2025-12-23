@@ -101,10 +101,9 @@ message.Size = UDim2.new(1,-40,0,20)
 message.Text = "is this heaven...?"
 message.Font = Enum.Font.Gotham
 message.TextSize = 14
-message.TextColor3 = Color3.fromRGB(255, 255, 180) -- light yellow
+message.TextColor3 = Color3.fromRGB(255, 255, 0) -- full yellow
 message.TextTransparency = 0 -- fully visible
 message.TextXAlignment = Enum.TextXAlignment.Left
-
 
 -- button maker
 local function hubButton(text, callback)
