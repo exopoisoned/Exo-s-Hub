@@ -101,7 +101,7 @@ message.Size = UDim2.new(1,-40,0,20)
 message.Text = "is this heaven...?"
 message.Font = Enum.Font.Gotham
 message.TextSize = 14
-message.TextColor3 = Color3.fromRGB(255, 255, 0) -- full yellow
+message.TextColor3 = Color3.fromRGB(255, 220, 0) -- bright yellow, slightly darkened
 message.TextTransparency = 0 -- fully visible
 message.TextXAlignment = Enum.TextXAlignment.Left
 
