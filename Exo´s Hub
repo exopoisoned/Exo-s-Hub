@@ -92,6 +92,20 @@ local layout = Instance.new("UIGridLayout", container)
 layout.CellSize = UDim2.fromOffset(220,50)
 layout.CellPadding = UDim2.fromOffset(16,16)
 
+-- SMALL THIN MESSAGE
+local message = Instance.new("TextLabel")
+message.Parent = main
+message.BackgroundTransparency = 1
+message.Position = UDim2.fromOffset(20, main.Size.Y.Offset - 28)
+message.Size = UDim2.new(1,-40,0,20)
+message.Text = "is this heaven...?"
+message.Font = Enum.Font.Gotham
+message.TextSize = 14
+message.TextColor3 = Color3.fromRGB(255, 255, 180) -- light yellow
+message.TextTransparency = 0 -- fully visible
+message.TextXAlignment = Enum.TextXAlignment.Left
+
+
 -- button maker
 local function hubButton(text, callback)
 	local b = Instance.new("TextButton")
